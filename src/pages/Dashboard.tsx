@@ -64,7 +64,7 @@ export default function Dashboard() {
   };
 
   const handleCopy = (shortCode: string) => {
-    const fullUrl = `http://localhost:3000/${shortCode}`;
+    const fullUrl = `${import.meta.env.VITE_API_URL}/${shortCode}`;
     navigator.clipboard.writeText(fullUrl);
     setCopiedCode(shortCode);
     setTimeout(() => setCopiedCode(null), 2000);
@@ -115,13 +115,13 @@ export default function Dashboard() {
               <div key={url.id} className="url-card">
                 <div className="url-info">
                   <a
-                    href={`http://localhost:3000/${url.shortCode}`}
+                   href={`${import.meta.env.VITE_API_URL}/${url.shortCode}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="short-link"
                   >
                     <LinkIcon size={18} />
-                    localhost:3000/{url.shortCode}
+                    {`${import.meta.env.VITE_API_URL}/${url.shortCode}`}
                   </a>
                   <span className="original-link" title={url.originalUrl}>
                     {url.originalUrl}
