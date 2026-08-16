@@ -4,7 +4,7 @@ import { UrlForm } from '../components/UrlForm';
 import '../styles/Dashboard.css';
 
 export default function Dashboard() {
-  const { urls, isLoading, error, shortenUrl } = useUrls();
+  const { urls, isLoading, error, shortenUrl, removeUrl } = useUrls();
 
   return (
     <>
@@ -22,7 +22,7 @@ export default function Dashboard() {
         ) : (
           <div className="urls-grid">
             {urls.map((url) => (
-              <UrlCard key={url.id} url={url} />
+              <UrlCard key={url.id} url={url} onDelete={() => removeUrl(url.id)} />
             ))}
           </div>
         )}

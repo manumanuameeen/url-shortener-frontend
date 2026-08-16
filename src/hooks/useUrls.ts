@@ -39,6 +39,17 @@ export function useUrls() {
     }
   };
 
+  const removeUrl = async (id: string) => {
+    try {
+      await urlsApi.remove(id);
+      setUrls((prev) => prev.filter((url) => url.id !== id));
+    } catch (err: any) {
+      console.error('Failed to delete URL', err);
+      // Optional: Add a toast notification here
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchUrls();
   }, [fetchUrls]);
@@ -48,6 +59,7 @@ export function useUrls() {
     isLoading,
     error,
     shortenUrl,
+    removeUrl,
     fetchUrls,
   };
 }

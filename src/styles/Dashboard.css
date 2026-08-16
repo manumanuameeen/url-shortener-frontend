@@ -202,6 +202,11 @@
   color: var(--accent-primary);
 }
 
+.delete-btn:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;

@@ -11,5 +11,9 @@ export const urlsApi = {
   create: async (originalUrl: string): Promise<Url> => {
     const response = await api.post<Url>(API_ROUTES.URLS.BASE, { originalUrl });
     return response.data;
+  },
+
+  remove: async (id: string): Promise<void> => {
+    await api.delete(`${API_ROUTES.URLS.BASE}/${id}`);
   }
 };
