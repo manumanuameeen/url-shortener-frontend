@@ -1,11 +1,7 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-
-}
+import { type ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import api, { setAccessToken } from '../api/axios';
+import { API_ROUTES } from '../constants/routes';
+import { type User } from '../types';
 
 interface AuthContextType {
   user: User | null;
@@ -20,43 +16,52 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Rehydrate user state on refresh if token exists
   useEffect(() => {
     const initializeAuth = async () => {
-      if (token) {
-        try {
-          // In a real app, we might want a GET /auth/me endpoint to fetch fresh user data.
-          // For now, we will just trust the token and assume they are logged in if it exists.
-          // If the token is invalid, our axios interceptor or API calls will fail with 401, 
-          // and we can log them out then.
-          const storedUser = localStorage.getItem('user');
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
-          }
-        } catch (error) {
-          logout();
+      try {
+        const res = await api.post(API_ROUTES.AUTH.REFRESH);
+        const { access_token } = res.data;
+        setAccessToken(access_token);
+        setTokenState(access_token);
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
         }
+      } catch (error) {
+        setAccessToken(null);
+        setTokenState(null);
+        localStorage.removeItem('user');
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     initializeAuth();
-  }, [token]);
+
+    const handleLogoutEvent = () => logout();
+    window.addEventListener('auth:logout', handleLogoutEvent);
+    return () => window.removeEventListener('auth:logout', handleLogoutEvent);
+  }, []);
 
   const login = (newToken: string, newUser: User) => {
-    localStorage.setItem('token', newToken);
+    setAccessToken(newToken);
+    setTokenState(newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
-    setToken(newToken);
     setUser(newUser);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const logout = async () => {
+    try {
+      await api.post(API_ROUTES.AUTH.LOGOUT);
+    } catch (e) {
+      console.error(e);
+    }
+    setAccessToken(null);
+    setTokenState(null);
     localStorage.removeItem('user');
-    setToken(null);
     setUser(null);
   };
 

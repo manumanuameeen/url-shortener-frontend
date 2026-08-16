@@ -1,11 +1,9 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './router';
 import { useAuth } from './context/AuthContext';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -15,23 +13,7 @@ function App() {
     );
   }
 
-  return (
-    <div className="app-container">
-      <main>
-        <Routes>
-          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route 
-            path="/dashboard" 
-            element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} 
-          />
-        </Routes>
-      </main>
-    </div>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;
-
-

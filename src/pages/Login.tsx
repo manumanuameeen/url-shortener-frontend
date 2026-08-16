@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
+import { authApi } from '../api/auth.api';
+import { MESSAGES } from '../constants/messages';
+import { ROUTES } from '../constants/routes';
+import { Button } from '../components/common/Button';
+import { Input } from '../components/common/Input';
+import { Card } from '../components/common/Card';
 import '../styles/Auth.css';
 
 export default function Login() {
@@ -19,69 +23,51 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await api.post('/auth/login', { email, password });
-      login(response.data.access_token, response.data.user);
-      navigate('/dashboard');
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(
-          (err.response?.data as { message?: string })?.message ||
-            'Failed to login. Please check your credentials.'
-        );
-      } else {
-        setError('An unexpected error occurred.');
-      }
+      const data = await authApi.login({ email, password });
+      login(data.access_token, data.user);
+      navigate(ROUTES.DASHBOARD);
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message || MESSAGES.AUTH.LOGIN_ERROR
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>Welcome Back</h1>
-          <p>Login to manage your shortened URLs</p>
-        </div>
+    <Card title="Welcome Back" subtitle="Login to manage your shortened URLs">
+      {error && <div className="auth-error">{error}</div>}
 
-        {error && <div className="auth-error">{error}</div>}
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <Input
+          label="Email"
+          type="email"
+          id="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              className="form-input"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+        <Input
+          label="Password"
+          type="password"
+          id="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              className="form-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+        <Button type="submit" isLoading={isLoading}>
+          Login
+        </Button>
+      </form>
 
-          <button type="submit" className="auth-button" disabled={isLoading}>
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          Don't have an account? <Link to="/register">Sign up</Link>
-        </div>
+      <div className="auth-footer">
+        Don't have an account? <Link to={ROUTES.REGISTER}>Sign up</Link>
       </div>
-    </div>
+    </Card>
   );
 }

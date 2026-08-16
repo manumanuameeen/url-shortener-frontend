@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import api from '../api/axios';
+import { authApi } from '../api/auth.api';
+import { MESSAGES } from '../constants/messages';
+import { ROUTES } from '../constants/routes';
+import { Button } from '../components/common/Button';
+import { Input } from '../components/common/Input';
+import { Card } from '../components/common/Card';
 import '../styles/Auth.css';
 
 export default function Register() {
@@ -18,20 +22,14 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-
-      await api.post('/auth/register', { name, email, password });
-
-      navigate('/login');
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const data = err.response?.data as { message?: string | string[] };
-        if (Array.isArray(data?.message)) {
-          setError(data.message[0]);
-        } else {
-          setError(data?.message ?? 'Failed to register. Please try again.');
-        }
+      await authApi.register({ name, email, password });
+      navigate(ROUTES.LOGIN);
+    } catch (err: any) {
+      const data = err.response?.data;
+      if (Array.isArray(data?.message)) {
+        setError(data.message[0]);
       } else {
-        setError('An unexpected error occurred.');
+        setError(data?.message || MESSAGES.AUTH.REGISTER_ERROR);
       }
     } finally {
       setIsLoading(false);
@@ -39,65 +37,49 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-header">
-          <h1>Create an Account</h1>
-          <p>Join us to start shortening your URLs</p>
-        </div>
+    <Card title="Create an Account" subtitle="Join us to start shortening your URLs">
+      {error && <div className="auth-error">{error}</div>}
 
-        {error && <div className="auth-error">{error}</div>}
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <Input
+          label="Full Name"
+          type="text"
+          id="name"
+          placeholder="John Doe"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="name">Full Name</label>
-            <input
-              type="text"
-              id="name"
-              className="form-input"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
+        <Input
+          label="Email"
+          type="email"
+          id="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              className="form-input"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+        <Input
+          label="Password"
+          type="password"
+          id="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={6}
+        />
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              className="form-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
+        <Button type="submit" isLoading={isLoading}>
+          Sign Up
+        </Button>
+      </form>
 
-          <button type="submit" className="auth-button" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Sign Up'}
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          Already have an account? <Link to="/login">Login</Link>
-        </div>
+      <div className="auth-footer">
+        Already have an account? <Link to={ROUTES.LOGIN}>Login</Link>
       </div>
-    </div>
+    </Card>
   );
 }
